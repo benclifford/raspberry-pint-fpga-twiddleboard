@@ -20,14 +20,13 @@ module top (
     wire [31:0] blink_pattern = 32'b10101010101010101010101011111111;
 
 
-    wire button;
     wire rot1_wire;
     wire rot2_wire;
 
 
     wire button_debounced;
-    debounce pushbutton_debouncer(.clk(CLK), .in(button), .out(button_debounced));
-    pullup pushbutton (.pin(PIN_14), .v(button));
+
+    debounced_pullup pushbutton(.clk(CLK), .pin(PIN_14), .out(button_debounced));
 
     pullup rot1 (.pin(PIN_15), .v(rot1_wire));
     pullup rot2 (.pin(PIN_16), .v(rot2_wire));
@@ -118,6 +117,18 @@ always @(posedge clk)
   end
 
 assign out = outreg;
+
+endmodule
+
+
+module debounced_pullup(
+  input clk,
+  input pin,
+  output out);
+
+  wire pulled_up;
+  debounce pushbutton_debouncer(.clk(clk), .in(pulled_up), .out(out));
+  pullup pushbutton (.pin(pin), .v(pulled_up));
 
 endmodule
 
