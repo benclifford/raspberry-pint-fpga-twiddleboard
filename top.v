@@ -13,13 +13,9 @@ module top (
     // drive USB pull-up resistor to '0' to disable USB
     assign USBPU = 0;
 
-    // keep track of time and location in blink_pattern
     reg [26:0] blink_counter;
-
-    // pattern that will be flashed over the LED over time
-    wire [31:0] blink_pattern = 32'b10101010101010101010101011111111;
-
-
+    always @(posedge CLK)
+      blink_counter <= blink_counter + 1;
 
     wire button_debounced;
 
@@ -48,10 +44,13 @@ module top (
 */
     // num[3:0] <= rotary_count[3:0];
 
-    assign LED = rotary_count[0];
-    assign PIN_1 = rotary_count[1];
-    assign PIN_2 = rotary_count[2];
-    assign PIN_3 = rotary_count[3];
+    wire blink;
+    assign blink = !button_debounced && blink_counter[21];
+
+    assign LED = rotary_count[0] || blink;
+    assign PIN_1 = rotary_count[1] || blink;
+    assign PIN_2 = rotary_count[2] || blink;
+    assign PIN_3 = rotary_count[3] || blink;
     // assign PIN_1 = num[0:1] == 1;
     // assign PIN_2 = num[0:1] == 2;
     // assign PIN_3 = num[0:1] == 3;
