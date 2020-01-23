@@ -20,32 +20,38 @@ module top (
     wire [31:0] blink_pattern = 32'b10101010101010101010101011111111;
 
 
-    wire rot1_wire;
-    wire rot2_wire;
-
 
     wire button_debounced;
 
     debounced_pullup pushbutton(.clk(CLK), .pin(PIN_14), .out(button_debounced));
 
-    pullup rot1 (.pin(PIN_15), .v(rot1_wire));
-    pullup rot2 (.pin(PIN_16), .v(rot2_wire));
- 
-    // increment the blink_counter every clock
-    always @(posedge CLK) begin
-        blink_counter <= blink_counter + 1;
-    end
 
+    wire rot_a;
+    wire rot_b;
+
+    debounced_pullup rot_a_in(.clk(CLK), .pin(PIN_15), .out(rot_a));
+    debounced_pullup rot_b_in(.clk(CLK), .pin(PIN_16), .out(rot_b));
+
+    wire rot_count_up;
+    wire rot_count_down;
+
+    rotary_encoder dial(.clk(CLK), .a(rot_a), .b(rot_b), .counter(rotary_count));
+
+    wire [7:0] rotary_count;
+
+/* 
     reg [3:0] num;
 
     always @(posedge button_debounced) begin
       num <= num + 1;
     end
+*/
+    // num[3:0] <= rotary_count[3:0];
 
-    assign LED = num[0];
-    assign PIN_1 = num[1];
-    assign PIN_2 = num[2];
-    assign PIN_3 = num[3];
+    assign LED = rotary_count[0];
+    assign PIN_1 = rotary_count[1];
+    assign PIN_2 = rotary_count[2];
+    assign PIN_3 = rotary_count[3];
     // assign PIN_1 = num[0:1] == 1;
     // assign PIN_2 = num[0:1] == 2;
     // assign PIN_3 = num[0:1] == 3;
@@ -84,7 +90,7 @@ module debounce (
   output out,
 );
 
-parameter BITS = 9; // bits of counter
+parameter BITS = 11; // bits of counter
 reg step1;
 reg step2;
 reg outreg;
@@ -103,7 +109,7 @@ reg [BITS:0] counter;
 always @(posedge clk)
   begin
     if(different)
-      counter <= 9'b0;
+      counter <= 11'b0;
     else
       counter <= counter + 1;
   end
@@ -129,6 +135,70 @@ module debounced_pullup(
   wire pulled_up;
   debounce pushbutton_debouncer(.clk(clk), .in(pulled_up), .out(out));
   pullup pushbutton (.pin(pin), .v(pulled_up));
+
+endmodule
+
+
+// rotary_encoder dial(.clk(CLK), .a(rot_a), .b(rot_b), .up(rot_count_up), .down(rot_count_down));
+module rotary_encoder (
+  input clk,
+  input a,
+  input b,
+  output[7:0] counter,
+);
+
+  reg prev[1:0];
+  reg[7:0] counter_reg;
+
+  always @(posedge clk) begin
+
+    prev[0] <= a;
+    prev[1] <= b;
+
+    case ( { prev[0], prev[1], a, b } ) 
+      4'b0010: counter_reg <= counter_reg + 1;
+      4'b1011: counter_reg <= counter_reg + 1;
+      4'b1101: counter_reg <= counter_reg + 1;
+      4'b0100: counter_reg <= counter_reg + 1;
+
+      4'b0001: counter_reg <= counter_reg - 1;
+      4'b0111: counter_reg <= counter_reg - 1;
+      4'b1110: counter_reg <= counter_reg - 1;
+      4'b1000: counter_reg <= counter_reg - 1;
+
+      default: counter_reg <= counter_reg;
+    endcase
+
+  end
+
+  assign counter = counter_reg;
+
+/*
+           rotating "up"                 rotating "down"
+    0 0 => 1,0 => 1,1 => 0,1 => 0,0   0,0 => 0,1 => 1,1 => 1,0 => 0,0
+
+   prev new
+   A B  A B
+   0 0  1 0  -> up [3]
+   1 0  1 1  -> up [12]
+   1 1  0 1  -> up
+   0 1  0 0  -> up [see row 2]
+
+   0 0  0 1  -> down [2]
+   0 1  1 1  -> down [8]
+   1 1  1 0  -> down
+   1 0  0 0  -> down [see row 3]
+
+   0 0  0 0  -> still [1]
+   0 1  0 1  -> still [6]
+   1 0  1 0  -> still [11]
+   1 1  1 1  -> still
+
+   0 0  1 1  -> BAD - still [4]
+   0 1  1 0  -> BAD - still [7]
+   1 0  0 1  -> BAD - still [10]
+   1 1  0 0  -> BAD - still
+*/
 
 endmodule
 
