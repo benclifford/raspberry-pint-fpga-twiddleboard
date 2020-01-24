@@ -13,6 +13,17 @@ module top (
     // drive USB pull-up resistor to '0' to disable USB
     assign USBPU = 0;
 
+    // some symbolic names for LEDs
+    wire EXT_LED;
+    assign PIN_1 = EXT_LED;
+
+    wire RED_LED;
+    assign PIN_2 = RED_LED;
+
+    wire GREEN_LED;
+    assign PIN_3 = GREEN_LED;
+
+
     reg [26:0] blink_counter;
     always @(posedge CLK)
       blink_counter <= blink_counter + 1;
@@ -37,11 +48,25 @@ module top (
 
     wire blink;
     assign blink = !button_debounced && blink_counter[21];
-
     assign LED = rotary_count[0] || blink;
-    assign PIN_1 = rotary_count[1] || blink;
-    assign PIN_2 = rotary_count[2] || blink;
-    assign PIN_3 = rotary_count[3] || blink;
+    assign EXT_LED = rotary_count[1] || blink;
+    assign RED_LED = (rotary_count[2] ^ rotary_count[3]) || blink;
+    assign GREEN_LED = rotary_count[3] || blink;
+
+
+
+/*
+
+ctr  green     red
+00    0         0 
+01    0         1
+10    1         1
+11    1         0
+
+green = ctr[1]
+red = ctr[0] xor ctr[1]
+*/
+
 endmodule
 
 module pullup (
