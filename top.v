@@ -35,15 +35,6 @@ module top (
 
     wire [7:0] rotary_count;
 
-/* 
-    reg [3:0] num;
-
-    always @(posedge button_debounced) begin
-      num <= num + 1;
-    end
-*/
-    // num[3:0] <= rotary_count[3:0];
-
     wire blink;
     assign blink = !button_debounced && blink_counter[21];
 
@@ -51,21 +42,6 @@ module top (
     assign PIN_1 = rotary_count[1] || blink;
     assign PIN_2 = rotary_count[2] || blink;
     assign PIN_3 = rotary_count[3] || blink;
-    // assign PIN_1 = num[0:1] == 1;
-    // assign PIN_2 = num[0:1] == 2;
-    // assign PIN_3 = num[0:1] == 3;
-/*
-    // light up the LED according to the pattern
-    assign LED = (blink_counter[23] && blink_counter[26])
-              || ((!blink_counter[26]) && blink_counter[10]
-                 && blink_counter[11] && blink_counter[12]
-                 && blink_counter[21] && blink_counter[9]);
-
-    // also output this on pin 1
-    assign PIN_1 = blink_counter[25] && blink_counter[23];
-    assign PIN_2 = (~PIN_1) && blink_counter[20];
-    assign PIN_3 = blink_counter[20];
-*/
 endmodule
 
 module pullup (
@@ -171,33 +147,6 @@ module rotary_encoder (
   end
 
   assign counter = counter_reg;
-
-/*
-           rotating "up"                 rotating "down"
-    0 0 => 1,0 => 1,1 => 0,1 => 0,0   0,0 => 0,1 => 1,1 => 1,0 => 0,0
-
-   prev new
-   A B  A B
-   0 0  1 0  -> up [3]
-   1 0  1 1  -> up [12]
-   1 1  0 1  -> up
-   0 1  0 0  -> up [see row 2]
-
-   0 0  0 1  -> down [2]
-   0 1  1 1  -> down [8]
-   1 1  1 0  -> down
-   1 0  0 0  -> down [see row 3]
-
-   0 0  0 0  -> still [1]
-   0 1  0 1  -> still [6]
-   1 0  1 0  -> still [11]
-   1 1  1 1  -> still
-
-   0 0  1 1  -> BAD - still [4]
-   0 1  1 0  -> BAD - still [7]
-   1 0  0 1  -> BAD - still [10]
-   1 1  0 0  -> BAD - still
-*/
 
 endmodule
 
