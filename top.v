@@ -32,10 +32,10 @@ module top (
     wire rot_a;
     wire rot_b;
 
-    // pullup rot_a_in(.pin(PIN_15), .v(rot_a));
-    // pullup rot_b_in(.pin(PIN_16), .v(rot_b));
-    debounced_pullup rot_a_in(.clk(CLK), .pin(PIN_15), .out(rot_a));
-    debounced_pullup rot_b_in(.clk(CLK), .pin(PIN_16), .out(rot_b));
+    pullup rot_a_in(.pin(PIN_15), .v(rot_a));
+    pullup rot_b_in(.pin(PIN_16), .v(rot_b));
+    // debounced_pullup rot_a_in(.clk(CLK), .pin(PIN_15), .out(rot_a));
+    // debounced_pullup rot_b_in(.clk(CLK), .pin(PIN_16), .out(rot_b));
 
     wire rot_count_up;
     wire rot_count_down;
@@ -159,12 +159,18 @@ module rotary_encoder (
   reg[7:0] counter_reg;
   reg err;
 
+  reg keep_a;
+  reg keep_b;
+
   always @(posedge clk) begin
 
-    prev[0] <= a;
-    prev[1] <= b;
+    keep_a <= a;
+    keep_b <= b;
 
-    case ( { prev[0], prev[1], a, b } ) 
+    prev[0] <= keep_a;
+    prev[1] <= keep_b;
+
+    case ( { prev[0], prev[1], keep_a, keep_b } ) 
       4'b0010: counter_reg <= counter_reg + 1;
       4'b1011: counter_reg <= counter_reg + 1;
       4'b1101: counter_reg <= counter_reg + 1;
