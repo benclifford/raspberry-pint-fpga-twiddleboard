@@ -50,14 +50,17 @@ module top (
     wire error_signal;
 
     wire blink;
-    assign blink = !button_debounced && blink_counter[21];
+    assign blink = !button_debounced && pwm_out;
     assign LED = rotary_count[0] || blink;
     //    assign EXT_LED = rotary_count[1] || blink;
     assign EXT_LED = blink;
     assign RED_LED = (rotary_count[4] ^ rotary_count[5]) || blink;
     assign GREEN_LED = rotary_count[5] || blink;
 
+    wire [6:0] pwm_phase = blink_counter[6:0];
+    wire [6:0] fade_phase = blink_counter[22:16];
 
+    wire pwm_out = blink_counter[23] ? fade_phase > pwm_phase : (127 - fade_phase) > pwm_phase;
 
 /*
 
