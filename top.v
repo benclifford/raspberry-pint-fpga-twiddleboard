@@ -54,8 +54,8 @@ module top (
     assign LED = rotary_count[0] || blink;
     //    assign EXT_LED = rotary_count[1] || blink;
     assign EXT_LED = blink;
-    assign RED_LED = (rotary_count[3] ^ rotary_count[4]) || blink;
-    assign GREEN_LED = rotary_count[4] || blink;
+    assign RED_LED = (rotary_count[4] ^ rotary_count[5]) || blink;
+    assign GREEN_LED = rotary_count[5] || blink;
 
 
 
