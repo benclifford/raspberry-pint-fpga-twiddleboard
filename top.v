@@ -36,22 +36,26 @@ module top (
     wire rot_a;
     wire rot_b;
 
+    // pullup rot_a_in(.pin(PIN_15), .v(rot_a));
+    // pullup rot_b_in(.pin(PIN_16), .v(rot_b));
     debounced_pullup rot_a_in(.clk(CLK), .pin(PIN_15), .out(rot_a));
     debounced_pullup rot_b_in(.clk(CLK), .pin(PIN_16), .out(rot_b));
 
     wire rot_count_up;
     wire rot_count_down;
 
-    rotary_encoder dial(.clk(CLK), .a(rot_a), .b(rot_b), .counter(rotary_count));
+    rotary_encoder dial(.clk(CLK), .a(rot_a), .b(rot_b), .counter(rotary_count), .err(error_signal));
 
     wire [7:0] rotary_count;
+    wire error_signal;
 
     wire blink;
     assign blink = !button_debounced && blink_counter[21];
     assign LED = rotary_count[0] || blink;
-    assign EXT_LED = rotary_count[1] || blink;
-    assign RED_LED = (rotary_count[2] ^ rotary_count[3]) || blink;
-    assign GREEN_LED = rotary_count[3] || blink;
+    //    assign EXT_LED = rotary_count[1] || blink;
+    assign EXT_LED = blink;
+    assign RED_LED = (rotary_count[3] ^ rotary_count[4]) || blink;
+    assign GREEN_LED = rotary_count[4] || blink;
 
 
 
@@ -145,10 +149,12 @@ module rotary_encoder (
   input a,
   input b,
   output[7:0] counter,
+  output err
 );
 
   reg prev[1:0];
   reg[7:0] counter_reg;
+  reg err;
 
   always @(posedge clk) begin
 
@@ -166,7 +172,13 @@ module rotary_encoder (
       4'b1110: counter_reg <= counter_reg - 1;
       4'b1000: counter_reg <= counter_reg - 1;
 
-      default: counter_reg <= counter_reg;
+      4'b0000: counter_reg <= counter_reg;
+      4'b0101: counter_reg <= counter_reg;
+      4'b1010: counter_reg <= counter_reg;
+      4'b1111: counter_reg <= counter_reg;
+
+      // error condition
+      default: err <= !err;
     endcase
 
   end
