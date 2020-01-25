@@ -32,10 +32,8 @@ module top (
     wire rot_a;
     wire rot_b;
 
-    pullup rot_a_in(.pin(PIN_15), .v(rot_a));
-    pullup rot_b_in(.pin(PIN_16), .v(rot_b));
-    // debounced_pullup rot_a_in(.clk(CLK), .pin(PIN_15), .out(rot_a));
-    // debounced_pullup rot_b_in(.clk(CLK), .pin(PIN_16), .out(rot_b));
+    registered_pullup rot_a_in(.pin(PIN_15), .v(rot_a), .clk(CLK));
+    registered_pullup rot_b_in(.pin(PIN_16), .v(rot_b), .clk(CLK));
 
     wire rot_count_up;
     wire rot_count_down;
@@ -75,6 +73,24 @@ red = ctr[0] xor ctr[1]
 */
 
 endmodule
+
+module registered_pullup (
+    input pin,
+    input clk,
+    output v 
+);
+
+SB_IO #(
+  .PIN_TYPE(6'b 0000_00),
+  .PULLUP(1'b 1)
+) button_input(
+  .PACKAGE_PIN(pin),
+  .D_IN_0(v),
+  .INPUT_CLK(clk)
+);
+
+endmodule
+
 
 module pullup (
     input pin,
@@ -159,18 +175,12 @@ module rotary_encoder (
   reg[7:0] counter_reg;
   reg err;
 
-  reg keep_a;
-  reg keep_b;
-
   always @(posedge clk) begin
 
-    keep_a <= a;
-    keep_b <= b;
+    prev[0] <= a;
+    prev[1] <= b;
 
-    prev[0] <= keep_a;
-    prev[1] <= keep_b;
-
-    case ( { prev[0], prev[1], keep_a, keep_b } ) 
+    case ( { prev[0], prev[1], a, b } ) 
       4'b0010: counter_reg <= counter_reg + 1;
       4'b1011: counter_reg <= counter_reg + 1;
       4'b1101: counter_reg <= counter_reg + 1;
