@@ -24,10 +24,6 @@ module top (
     assign PIN_3 = GREEN_LED;
 
 
-    reg [26:0] blink_counter;
-    always @(posedge CLK)
-      blink_counter <= blink_counter + 1;
-
     wire button_debounced;
 
     debounced_pullup pushbutton(.clk(CLK), .pin(PIN_14), .out(button_debounced));
@@ -56,6 +52,10 @@ module top (
     assign EXT_LED = blink;
     assign RED_LED = (rotary_count[4] ^ rotary_count[5]) || blink;
     assign GREEN_LED = rotary_count[5] || blink;
+
+    reg [26:0] blink_counter;
+    always @(posedge CLK)
+      blink_counter <= blink_counter + 1;
 
     wire [6:0] pwm_phase = blink_counter[6:0];
     wire [6:0] fade_phase = blink_counter[22:16];
