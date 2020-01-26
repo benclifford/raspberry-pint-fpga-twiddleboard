@@ -2,7 +2,7 @@
 
 ## Board hardware
 
-This demo board consists of a TinyFPGA BX wired up with:
+This demo board consists of a [TinyFPGA BX](https://tinyfpga.com/) wired up with:
 
  * a red LED on pin 1
 
